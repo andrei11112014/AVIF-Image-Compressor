@@ -6,7 +6,14 @@ import encode from '@jsquash/avif/encode';
 let ffmpeg = null;
 
 self.onmessage = async (e) => {
-    const { bitmap, mode, type } = e.data;
+    const { bitmap, mode, type, settings } = e.data;
+
+    //значения по умолчанию
+    const {
+        quality = 35,
+        effort = 4,
+        scale = 100
+    } = settings || {};
 
     if (type === 'WARMUP') {
         try { await encode(new ImageData(1, 1), { speed: 10 }); self.postMessage({ type: 'READY' }); } catch (err) {}
@@ -17,15 +24,25 @@ self.onmessage = async (e) => {
         if (mode === 'hybrid' || mode === 'client_fast') {
             const startTime = performance.now();
 
-            const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+            const targetWidth = Math.floor(bitmap.width * (scale / 100));
+            const targetHeight = Math.floor(bitmap.height * (scale / 100));
+
+            const canvas = new OffscreenCanvas(targetWidth, targetHeight);
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(bitmap, 0, 0);
+            ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
 
             const fixedBitmap = canvas.transferToImageBitmap();
             const { width, height } = fixedBitmap;
             bitmap.close();
 
             let encodedChunk = null;
+
+            //расчет битрейта на основе качества
+            //quality 1-100 -> bitrate 500000-10000000
+            const baseBitrate = 500000;
+            const maxBitrate = 10000000;
+            const bitrate = Math.floor(baseBitrate + (quality / 100) * (maxBitrate - baseBitrate));
+
             const encoder = new VideoEncoder({
                 output: (chunk) => {
                     const data = new Uint8Array(chunk.byteLength);
@@ -35,12 +52,7 @@ self.onmessage = async (e) => {
                 error: (err) => { throw err; }
             });
 
-            encoder.configure({
-                codec: 'av01.0.04M.08',
-                width: width,
-                height: height,
-                hardwareAcceleration: 'prefer-software'
-            });
+            encoder.configure({ codec: 'av01.0.04M.08', width: width, height: height, bitrate: bitrate, hardwareAcceleration: 'prefer-software' });
 
             encoder.encode(new VideoFrame(fixedBitmap, { timestamp: 0 }), { keyFrame: true });
             await encoder.flush();
@@ -61,12 +73,18 @@ self.onmessage = async (e) => {
             }
         } else if (mode === 'client_software') {
             const startTime = performance.now();
-            const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+            const targetWidth = Math.floor(bitmap.width * (scale / 100));
+            const targetHeight = Math.floor(bitmap.height * (scale / 100));
+            const canvas = new OffscreenCanvas(targetWidth, targetHeight);
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(bitmap, 0, 0);
+            ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-            const avifBuffer = await encode(imageData, { quality: 35, speed: 10 });
+            //конвертация effort в speed
+            //effort 1-10 -> speed 10-1 (инвертировано: 10 - быстрее, 1- качественнее)
+            const speed = 11 - effort;
+
+            const avifBuffer = await encode(imageData, { quality: quality, speed: speed });
             self.postMessage({ type: 'DONE', data: new Uint8Array(avifBuffer), duration: (performance.now()-startTime).toFixed(2), label: 'WASM' }, [avifBuffer]);
             bitmap.close();
         }

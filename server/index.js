@@ -33,16 +33,35 @@ app.post('/compress', upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).send('No file');
     const outPath = path.join(OUTPUTS, `${req.file.filename}.avif`);
 
+    //получение настроек от клиента
+    const quality = parseInt(req.body.quality) || 35;
+    const effort = parseInt(req.body.effort) || 4;
+    const scale = parseInt(req.body.scale) || 100;
+
     try {
         let duration;
-        const gpuArgs = ['-i', req.file.path, '-c:v', 'av1_amf', '-rc', '0', '-qp_i', '35', '-qp_p', '35'];
+        //конвертация effort в значение sharp
+        //effort 1-10 -> sharp effort 0-9
+        const sharpEffort = Math.min(9, Math.max(0, effort - 1));
+        //расчет qp для ffmpeg на основе качества
+        //quality 1-100 -> qp 63-0 (меньше QP = лучше качество)
+        const qp = Math.floor(63 - (quality / 100) * 63);
+        const gpuArgs = ['-i', req.file.path, '-c:v', 'av1_amf', '-rc', '0', '-qp_i', qp.toString(), '-qp_p', qp.toString()];
 
         try {
             duration = await runFFmpeg(gpuArgs, outPath);
         } catch (e) {
             const start = Date.now();
-            await sharp(req.file.path)
-                .avif({ quality: 35, effort: 2, chromaSubsampling: '4:2:0' })
+            let sharpChain = sharp(req.file.path);
+            if (scale < 100) {
+                const metadata = await sharp(req.file.path).metadata();
+                sharpChain = sharpChain.resize({
+                    width: Math.floor(metadata.width * (scale / 100)),
+                    height: Math.floor(metadata.height * (scale / 100))
+                });
+            }
+            await sharpChain
+                .avif({ quality: quality, effort: sharpEffort, chromaSubsampling: '4:2:0' })
                 .toFile(outPath);
             duration = Date.now() - start;
         }

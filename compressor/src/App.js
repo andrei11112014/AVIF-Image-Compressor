@@ -6,6 +6,9 @@ function App() {
   const [isReady, setIsReady] = useState(false);
   const [mode, setMode] = useState('hybrid');
   const [stats, setStats] = useState(null);
+  const [quality, setQuality] = useState(35); //качество от 1 до 100 процентов
+  const [effort, setEffort] = useState(4); //степень сжатия от 1 до 10 (1 = быстрее, 10 = качественнее итд)
+  const [scale, setScale] = useState(100); //масштабирование от 10 до 100 процентов
 
   const worker = useMemo(() => new Worker(new URL('./Worker.js', import.meta.url)), []);
 
@@ -41,6 +44,9 @@ function App() {
     setStatus('Упаковка на сервере...');
     const formData = new FormData();
     formData.append('raw_av1', new Blob([rawData]));
+    //отправка настроек на сервер
+    formData.append('quality', quality);
+    formData.append('effort', effort);
 
     try {
       const res = await fetch('http://localhost:3001/wrap-avif', { method: 'POST', body: formData });
@@ -61,9 +67,18 @@ function App() {
     setStats(null);
     setStatus('Обработка...');
 
+    const compressionSettings = {
+      quality,
+      effort,
+      scale
+    };
+
     if (mode === 'server') {
       const fd = new FormData();
       fd.append('image', file);
+      fd.append('quality', quality);
+      fd.append('effort', effort);
+      fd.append('scale', scale);
       try {
         const res = await fetch('http://localhost:3001/compress', { method: 'POST', body: fd });
         if (!res.ok) throw new Error('Ошибка сервера');
@@ -80,7 +95,7 @@ function App() {
         await img.decode();
 
         const bitmap = await createImageBitmap(img, { imageOrientation: 'from-image' });
-        worker.postMessage({ bitmap, mode }, [bitmap]);
+        worker.postMessage({ bitmap, mode, settings: compressionSettings }, [bitmap]);
         URL.revokeObjectURL(img.src);
       } catch (err) {
         setStatus('Ошибка обработки изображения');
@@ -104,6 +119,63 @@ function App() {
             <option value="client_software">3. Автономно (Jsquash)</option>
             <option value="server">4. Сервер (GPU/CPU (FFmpeg + Sharp))</option>
           </select>
+        </div>
+
+        <div style={{
+          marginBottom: '25px',
+          padding: '20px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '10px',
+          border: '1px solid #dee2e6'
+        }}>
+          <h3 style={{ marginTop: 0, color: '#495057' }}>Настройки сжатия</h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Качество: {quality}%
+              </label>
+              <input
+                  type="range"
+                  min="1"
+                  max="100"
+                  value={quality}
+                  onChange={(e) => setQuality(parseInt(e.target.value))}
+                  style={{ width: '100%' }}
+              />
+              <small style={{ color: '#6c757d' }}>Высокое значение - лучшее качество и больший размер файла</small>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Степень сжатия: {effort}
+              </label>
+              <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={effort}
+                  onChange={(e) => setEffort(parseInt(e.target.value))}
+                  style={{ width: '100%' }}
+              />
+              <small style={{ color: '#6c757d' }}>1 - быстрее, 10 - качественнее (медленнее)</small>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
+                Размер изображения: {scale}%
+              </label>
+              <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  value={scale}
+                  onChange={(e) => setScale(parseInt(e.target.value))}
+                  style={{ width: '100%' }}
+              />
+              <small style={{ color: '#6c757d' }}>Чем меньше масштаб, меньше размер файла</small>
+            </div>
+          </div>
         </div>
 
         <div style={{ border: '3px dashed #bdc3c7', padding: '40px', borderRadius: '15px', backgroundColor: '#fdfdfd' }}>
