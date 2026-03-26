@@ -43,7 +43,15 @@ self.onmessage = async (e) => {
             const maxBitrate = 10000000;
             const qualityMultiplier = (quality / 100);
             const effortMultiplier = 0.5 + (effort / 10);
-            const bitrate = Math.floor((baseBitrate + qualityMultiplier * (maxBitrate - baseBitrate)) * effortMultiplier);
+
+            //ограничение битрейта для предотвращения экстремальных значений
+            const bitrate = Math.min(
+                maxBitrate * 1.5, //максимум 15 Mbps
+                Math.max(
+                    100000, //минимум 100 kbps
+                    Math.floor((baseBitrate + qualityMultiplier * (maxBitrate - baseBitrate)) * effortMultiplier)
+                )
+            );
 
             const encoder = new VideoEncoder({
                 output: (chunk) => {

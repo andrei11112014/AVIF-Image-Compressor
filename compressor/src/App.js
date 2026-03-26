@@ -67,6 +67,10 @@ function App() {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
     setDownloadUrl(null);
     setStats(null);
     setStatus('Обработка...');
