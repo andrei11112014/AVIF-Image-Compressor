@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './App.css';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+
 function App() {
   const [status, setStatus] = useState('Инициализация кодека...');
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [mode, setMode] = useState('hybrid');
   const [stats, setStats] = useState(null);
+
+  const fileInputRef = useRef(null); //refresh для input файла
+
   const [quality, setQuality] = useState(35); //качество от 1 до 100 процентов
   const [effort, setEffort] = useState(4); //степень сжатия от 1 до 10 (1 = быстрее, 10 = качественнее итд)
   const [scale, setScale] = useState(100); //масштабирование от 10 до 100 процентов
@@ -38,6 +43,7 @@ function App() {
     setDownloadUrl(url);
     setStats({ time, size: (blob.size / 1024 / 1024).toFixed(2) });
     setStatus(`Готово!`);
+    if (fileInputRef.current) { fileInputRef.current.value = ''; }
   };
 
   const handleHybridWrap = async (rawData, clientTime) => {
@@ -196,6 +202,7 @@ function App() {
                 Файл: <strong>{fileName}</strong>
               </div>
           )}
+          <input type="file" accept="image/*" onChange={handleFile} disabled={!isReady} style={{ fontSize: '16px' }} ref={fileInputRef} />
           <p style={{ marginTop: '20px', fontSize: '18px' }}>
             Статус: <span style={{ color: '#3498db', fontWeight: 'bold' }}>{status}</span>
           </p>
