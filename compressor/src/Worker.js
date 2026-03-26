@@ -37,11 +37,13 @@ self.onmessage = async (e) => {
 
             let encodedChunk = null;
 
-            //расчет битрейта на основе качества
-            //quality 1-100 -> bitrate 500000-10000000
+            //расчет битрейта на основе quality и effort
+            //quality 1-100 -> bitrate 500000-10000000, effort 1 - 10 -> множитель 0.5 - 1.5
             const baseBitrate = 500000;
             const maxBitrate = 10000000;
-            const bitrate = Math.floor(baseBitrate + (quality / 100) * (maxBitrate - baseBitrate));
+            const qualityMultiplier = (quality / 100);
+            const effortMultiplier = 0.5 + (effort / 10);
+            const bitrate = Math.floor((baseBitrate + qualityMultiplier * (maxBitrate - baseBitrate)) * effortMultiplier);
 
             const encoder = new VideoEncoder({
                 output: (chunk) => {
