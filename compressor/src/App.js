@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import './App.css';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-
+import './App.css';
 function App() {
   const [status, setStatus] = useState('Инициализация кодека...');
   const [downloadUrl, setDownloadUrl] = useState(null);
@@ -202,7 +200,7 @@ function App() {
                 Файл: <strong>{fileName}</strong>
               </div>
           )}
-          <input type="file" accept="image/*" onChange={handleFile} disabled={!isReady} style={{ fontSize: '16px' }} ref={fileInputRef} />
+
           <p style={{ marginTop: '20px', fontSize: '18px' }}>
             Статус: <span style={{ color: '#3498db', fontWeight: 'bold' }}>{status}</span>
           </p>
