@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
+import './App.css';
 function App() {
   const [status, setStatus] = useState('Инициализация кодека...');
   const [downloadUrl, setDownloadUrl] = useState(null);
@@ -9,7 +9,7 @@ function App() {
   const [quality, setQuality] = useState(35); //качество от 1 до 100 процентов
   const [effort, setEffort] = useState(4); //степень сжатия от 1 до 10 (1 = быстрее, 10 = качественнее итд)
   const [scale, setScale] = useState(100); //масштабирование от 10 до 100 процентов
-
+  const [fileName, setFileName] = useState('');
   const worker = useMemo(() => new Worker(new URL('./Worker.js', import.meta.url)), []);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ function App() {
   const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+    setFileName(file.name);
     setDownloadUrl(null);
     setStats(null);
     setStatus('Обработка...');
@@ -179,7 +179,23 @@ function App() {
         </div>
 
         <div style={{ border: '3px dashed #bdc3c7', padding: '40px', borderRadius: '15px', backgroundColor: '#fdfdfd' }}>
-          <input type="file" accept="image/*" onChange={handleFile} disabled={!isReady} style={{ fontSize: '16px' }} />
+          <div className="file-upload">
+            <input
+                id="file"
+                type="file"
+                accept="image/*"
+                onChange={handleFile}
+                disabled={!isReady}
+            />
+            <label htmlFor="file" className="fancy-button">
+              Выберите файл
+            </label>
+          </div>
+          {fileName && (
+              <div style={{ marginTop: '12px', color: '#555', fontSize: '15px' }}>
+                Файл: <strong>{fileName}</strong>
+              </div>
+          )}
           <p style={{ marginTop: '20px', fontSize: '18px' }}>
             Статус: <span style={{ color: '#3498db', fontWeight: 'bold' }}>{status}</span>
           </p>
@@ -198,17 +214,8 @@ function App() {
               <a
                   href={downloadUrl}
                   download="compressed.avif"
-                  style={{
-                    display: 'inline-block',
-                    marginTop: '25px',
-                    padding: '15px 40px',
-                    backgroundColor: '#27ae60',
-                    color: 'white',
-                    textDecoration: 'none',
-                    borderRadius: '10px',
-                    fontSize: '18px',
-                    fontWeight: 'bold'
-                  }}
+                  className="fancy-button fancy-button--green"
+                  style={{ textDecoration: 'none', marginTop: '25px' }}
               >
                 Скачать .avif
               </a>

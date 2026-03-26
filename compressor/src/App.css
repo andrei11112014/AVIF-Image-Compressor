@@ -1,0 +1,93 @@
+.file-upload input[type="file"] {
+    display: none;
+}
+
+.fancy-button{
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 255px;
+    height: 70px;
+
+    font-family: 'Inter','Segoe UI', system-ui, sans-serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: #fff;
+
+    border-radius: 30px;
+    cursor: pointer;
+    user-select: none;
+
+    background: linear-gradient(
+            to bottom,
+            #3489FF 0%,
+            #0360DF 51%,
+            #3489FF 100%
+    );
+
+    border: 3px solid #0965E3;
+
+    box-shadow:
+            0 5px 8px rgba(84, 181, 254, 0.6),
+            0 9px 13px rgba(159, 214, 255, 0.5);
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.fancy-button--green {
+    background: linear-gradient(
+            to bottom,
+            #A0E430 0%,
+            #19C43F 51%,
+            #4EDD42 100%
+    );
+
+    border: 3px solid #2FBC22;
+
+    box-shadow:
+            0 5px 8px rgba(71, 222, 86, 0.75),
+            0 9px 13px rgba(150, 237, 159, 0.65);
+}
+.fancy-button::before {
+    content: '';
+    position: absolute;
+    top: 3%;
+    left: 9%;
+    right: 9%;
+    height: 50%;
+
+    border-radius: 30px;
+
+    background: linear-gradient(
+            to bottom,
+            rgba(255,255,255,1) 0%,
+            rgba(255,255,255,0.55) 50%,
+            rgba(255,255,255,0) 100%
+    );
+
+    pointer-events: none;
+}
+
+.fancy-button:hover {
+    transform: translateY(-1px);
+}
+
+.fancy-button:active {
+    transform: translateY(2px);
+    box-shadow:
+            0 5px 10px rgba(84,181,254,0.6),
+            0 9px 16px rgba(159,214,255,0.5);
+}
+
+.fancy-button--green:active {
+    box-shadow:
+            0 5px 10px rgba(71,222,86,0.6),
+            0 9px 16px rgba(150,237,159,0.5);
+}
+
+.file-upload input:disabled + .fancy-button {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
