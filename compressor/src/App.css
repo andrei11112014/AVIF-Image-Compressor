@@ -1,6 +1,26 @@
 .file-upload input[type="file"] {
     display: none;
 }
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 50% 40%, #e0f7ff 0%, #b2e6ff 45%, #7cd6ff 100%) fixed;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    background-image:
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 40%),
+            radial-gradient(circle at 0% 100%, rgba(131, 213, 255, 0.6) 0%, transparent 40%),
+            radial-gradient(circle at 100% 100%, rgba(255, 182, 193, 0.5) 0%, transparent 40%);
+    z-index: -1;
+}
 
 .fancy-button{
     position: relative;
@@ -91,3 +111,5 @@
     cursor: not-allowed;
     box-shadow: none;
 }
+
+
