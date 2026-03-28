@@ -5,7 +5,7 @@ body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background: radial-gradient(circle at 50% 40%, #e0f7ff 0%, #b2e6ff 45%, #7cd6ff 100%) fixed;
+    background: radial-gradient(circle at 50% 40%, #cef2ff 0%, #87deff 45%, #57bcff 100%) fixed;
     position: relative;
     overflow-x: hidden;
 }
@@ -110,6 +110,44 @@ body::before {
     opacity: 0.5;
     cursor: not-allowed;
     box-shadow: none;
+}
+.bubbles-wrapper {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    overflow: hidden;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.bubble {
+    position: absolute;
+    top: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    animation: rise 20s infinite linear, sway 5s infinite ease-in-out;
+    filter: contrast(1.2) brightness(1.1) drop-shadow(0 0 5px rgba(255,255,255,0.2));
+}
+
+.bubble--type-1   { background-image: url('img/bubble1.png');   width: 114px; height: 114px; }
+.bubble--type-2  { background-image: url('img/bubble2.png');   width: 177px; height: 177px; }
+.bubble--type-3   { background-image: url('img/bubble3.png');   width: 203px; height: 203px; }
+.bubble--type-4  { background-image: url('img/bubble4.png');   width: 263px; height: 263px; }
+.bubble--type-5   { background-image: url('img/bubble5.png');   width: 282px; height: 282px; }
+.bubble--type-6   { background-image: url('img/bubble6.png');   width: 299px; height: 299px; }
+
+@keyframes rise {
+    0% { transform: translateY(10vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.8; }
+    80% { opacity: 0.8; }
+    100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+}
+
+@keyframes sway {
+    0%, 100% { margin-left: 0; }
+    50% { margin-left: 20px; }
 }
 
 
