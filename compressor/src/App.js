@@ -113,15 +113,17 @@ function App() {
   };
 
   return (
-      <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif', maxWidth: '900px', margin: '0 auto' }}>
-        <h1 style={{ color: '#2c3e50', marginBottom: '30px' }}>AVIF-Image-Compressor
+      <div style={{ padding: '40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto'}}>
+
+        <h1 className="title" style={{ fontSize: '38px', marginBottom: '30px' }}>
+          AVIF-Image-Compressor
         </h1>
 
         <div style={{ marginBottom: '25px' }}>
           <select
               value={mode}
               onChange={(e) => setMode(e.target.value)}
-              style={{ padding: '12px 20px', fontSize: '16px', borderRadius: '8px', border: '2px solid #3498db' }}
+              className="select"
           >
             <option value="hybrid">1. Гибрид (WebCodecs API + Упаковка на сервере)</option>
             <option value="client_fast">2. Автономно (WebCodecs API + Упаковка в браузере (FFmpeg))</option>
@@ -130,29 +132,25 @@ function App() {
           </select>
         </div>
 
-        <div style={{
-          marginBottom: '25px',
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '10px',
-          border: '1px solid #dee2e6'
-        }}>
-          <h3 style={{ marginTop: 0, color: '#495057' }}>Настройки сжатия</h3>
+        <div className="panel" style={{ marginBottom: '25px' }}>
+          <h3 style={{ marginTop: 0, color: '#0056b3' }}>Настройки сжатия</h3>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
                 Качество: {quality}%
               </label>
               <input
                   type="range"
-                  min="1"
-                  max="100"
+                  min="1" max="100"
                   value={quality}
                   onChange={(e) => setQuality(parseInt(e.target.value))}
-                  style={{ width: '100%' }}
+                  style={{width: '100%', appearance: 'none', height: '10px', borderRadius: '5px', outline: 'none', background: `linear-gradient(to right, #3498db 0%, #3498db ${(quality - 1) / 0.99}%, #e0e0e0 ${(quality - 1) / 0.99}%, #e0e0e0 100%)`}}
               />
-              <small style={{ color: '#6c757d' }}>Высокое значение - лучшее качество и больший размер файла</small>
+              <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
+                Высокое значение - лучшее качество и больший размер файла
+              </small>
             </div>
 
             <div>
@@ -161,13 +159,14 @@ function App() {
               </label>
               <input
                   type="range"
-                  min="1"
-                  max="10"
+                  min="1" max="10"
                   value={effort}
                   onChange={(e) => setEffort(parseInt(e.target.value))}
-                  style={{ width: '100%' }}
+                  style={{width: '100%', appearance: 'none', height: '10px', borderRadius: '5px', outline: 'none', background: `linear-gradient(to right, #3498db 0%, #3498db ${(effort - 1) / 9 * 100}%, #e0e0e0 ${(effort - 1) / 9 * 100}%, #e0e0e0 100%)`}}
               />
-              <small style={{ color: '#6c757d' }}>1 - быстрее, 10 - качественнее (медленнее)</small>
+              <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
+                1 - быстрее, 10 - качественнее (медленнее)
+              </small>
             </div>
 
             <div>
@@ -176,18 +175,19 @@ function App() {
               </label>
               <input
                   type="range"
-                  min="10"
-                  max="100"
+                  min="10" max="100"
                   value={scale}
                   onChange={(e) => setScale(parseInt(e.target.value))}
-                  style={{ width: '100%' }}
+                  style={{width: '100%', appearance: 'none', height: '10px', borderRadius: '5px', outline: 'none', background: `linear-gradient(to right, #3498db 0%, #3498db ${(scale - 10) / 90 * 100}%, #e0e0e0 ${(scale - 10) / 90 * 100}%, #e0e0e0 100%)`}}
               />
-              <small style={{ color: '#6c757d' }}>Чем меньше масштаб, меньше размер файла</small>
+              <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
+                Чем меньше масштаб, меньше размер файла
+              </small>
             </div>
           </div>
         </div>
 
-        <div style={{ border: '3px dashed #bdc3c7', padding: '40px', borderRadius: '15px', backgroundColor: '#fdfdfd' }}>
+        <div className="panel" style={{ borderStyle: 'dashed', borderWidth: '3px', borderColor: 'rgba(52, 152, 219, 0.4)' }}>
           <div className="file-upload">
             <input
                 id="file"
@@ -195,36 +195,43 @@ function App() {
                 accept="image/*"
                 onChange={handleFile}
                 disabled={!isReady}
+                style={{ display: 'none' }}
             />
-            <label htmlFor="file" className="fancy-button">
+            <label htmlFor="file" className="button">
               Выберите файл
             </label>
           </div>
+
           {fileName && (
-              <div style={{ marginTop: '12px', color: '#555', fontSize: '15px' }}>
+              <div style={{ marginTop: '12px', color: '#333', fontSize: '15px' }}>
                 Файл: <strong>{fileName}</strong>
               </div>
           )}
 
           <p style={{ marginTop: '20px', fontSize: '18px' }}>
-            Статус: <span style={{ color: '#3498db', fontWeight: 'bold' }}>{status}</span>
+            Статус: <span style={{ color: '#0078d7', fontWeight: 'bold' }}>{status}</span>
           </p>
+
           {stats && (
-              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#eef2f3', borderRadius: '5px', display: 'inline-block' }}>
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '8px', display: 'inline-block' }}>
                 <strong>Время:</strong> {stats.time} ms | <strong>Вес:</strong> {stats.size} MB
               </div>
           )}
         </div>
 
         {downloadUrl && (
-            <div style={{ marginTop: '40px' }}>
-              <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#7f8c8d' }}>Предпросмотр:</div>
-              <img src={downloadUrl} alt="Result" style={{ maxWidth: '100%', maxHeight: '500px', borderRadius: '12px', boxShadow: '0 8px 25px rgba(0,0,0,0.15)' }} />
+            <div className="panel" style={{ marginTop: '40px' }}>
+              <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#2c3e50' }}>Предпросмотр:</div>
+              <img
+                  src={downloadUrl}
+                  alt="Result"
+                  style={{ maxWidth: '100%', maxHeight: '500px', borderRadius: '12px', border: '4px solid white', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}
+              />
               <br />
               <a
                   href={downloadUrl}
                   download="compressed.avif"
-                  className="fancy-button fancy-button--green"
+                  className="button button--green"
                   style={{ textDecoration: 'none', marginTop: '25px' }}
               >
                 Скачать .avif
