@@ -114,7 +114,38 @@ function App() {
 
   return (
       <div style={{ padding: '40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto'}}>
+          <div className="bubbles-wrapper">
+              <div className="bubble bubble--type-3" style={{ width: '95px', height: '95px', left: '1%', animationDelay: '0s, 0s' }}></div>
+              <div className="bubble bubble--type-2" style={{ width: '65px', height: '65px', left: '11%', animationDelay: '11s, 1s' }}></div>
+              <div className="bubble bubble--type-5" style={{ width: '35px', height: '35px', left: '18%', animationDelay: '7s, 2s' }}></div>
+              <div className="bubble bubble--type-1" style={{ width: '30px', height: '30px', left: '23%', animationDelay: '4s, 2s' }}></div>
 
+              <div className="bubble bubble--type-3" style={{ width: '85px', height: '85px', left: '5%', animationDelay: '16s, 3s' }}></div>
+              <div className="bubble bubble--type-5" style={{ width: '45px', height: '45px', left: '15%', animationDelay: '20s, 1.5s' }}></div>
+              <div className="bubble bubble--type-6" style={{ width: '105px', height: '105px', left: '19%', animationDelay: '9s, 0s' }}></div>
+              <div className="bubble bubble--type-5" style={{ width: '20px', height: '20px', left: '7%', animationDelay: '3s, 1s' }}></div>
+
+              <div className="bubble bubble--type-4" style={{ width: '70px', height: '70px', left: '27%', animationDelay: '22s, 2s' }}></div>
+              <div className="bubble bubble--type-3" style={{ width: '85px', height: '85px', left: '34%', animationDelay: '5s, 0.5s' }}></div>
+              <div className="bubble bubble--type-2" style={{ width: '75px', height: '75px', left: '42%', animationDelay: '10s, 3s' }}></div>
+              <div className="bubble bubble--type-5" style={{ width: '30px', height: '30px', left: '31%', animationDelay: '18s, 1s' }}></div>
+
+              <div className="bubble bubble--type-1" style={{ width: '55px', height: '55px', left: '49%', animationDelay: '20s, 1s' }}></div>
+              <div className="bubble bubble--type-6" style={{ width: '105px', height: '105px', left: '55%', animationDelay: '2s, 0s' }}></div>
+              <div className="bubble bubble--type-2" style={{ width: '90px', height: '90px', left: '45%', animationDelay: '14s, 4s' }}></div>
+              <div className="bubble bubble--type-6" style={{ width: '20px', height: '20px', left: '53%', animationDelay: '6s, 2s' }}></div>
+
+              <div className="bubble bubble--type-2" style={{ width: '80px', height: '80px', left: '61%', animationDelay: '17s, 2s' }}></div>
+              <div className="bubble bubble--type-3" style={{ width: '75px', height: '75px', left: '69%', animationDelay: '8s, 0.5s' }}></div>
+              <div className="bubble bubble--type-5" style={{ width: '60px', height: '60px', left: '76%', animationDelay: '3s, 5s' }}></div>
+              <div className="bubble bubble--type-1" style={{ width: '25px', height: '25px', left: '67%', animationDelay: '24s, 4s' }}></div>
+              <div className="bubble bubble--type-4" style={{ width: '100px', height: '100px', left: '81%', animationDelay: '12s, 1s' }}></div>
+
+              <div className="bubble bubble--type-3" style={{ width: '60px', height: '60px', left: '89%', animationDelay: '11s, 0.5s' }}></div>
+              <div className="bubble bubble--type-6" style={{ width: '90px', height: '90px', left: '95%', animationDelay: '1s, 0s' }}></div>
+              <div className="bubble bubble--type-1" style={{ width: '45px', height: '45px', left: '86%', animationDelay: '6s, 1s' }}></div>
+              <div className="bubble bubble--type-2" style={{ width: '50px', height: '50px', left: '91%', animationDelay: '15s, 2s' }}></div>
+          </div>
         <h1 className="title" style={{ fontSize: '38px', marginBottom: '30px' }}>
           AVIF-Image-Compressor
         </h1>
