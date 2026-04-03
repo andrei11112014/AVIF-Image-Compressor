@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './App.css';
 function App() {
+  const API_URL = `http://${window.location.hostname}:3001`;
   const [status, setStatus] = useState('Инициализация кодека...');
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [isReady, setIsReady] = useState(false);
@@ -53,7 +54,7 @@ function App() {
     formData.append('effort', effort);
 
     try {
-      const res = await fetch('http://localhost:3001/wrap-avif', { method: 'POST', body: formData });
+      const res = await fetch(`${API_URL}/wrap-avif`, { method: 'POST', body: formData });
       const serverTime = res.headers.get('X-Compression-Time') || 0;
       const blob = await res.blob();
       const totalTime = (parseFloat(clientTime) + parseFloat(serverTime)).toFixed(2);
@@ -89,7 +90,7 @@ function App() {
       fd.append('effort', effort);
       fd.append('scale', scale);
       try {
-        const res = await fetch('http://localhost:3001/compress', { method: 'POST', body: fd });
+        const res = await fetch(`${API_URL}/compress`, { method: 'POST', body: fd });
         if (!res.ok) throw new Error('Ошибка сервера');
         const serverTime = res.headers.get('X-Compression-Time');
         const blob = await res.blob();

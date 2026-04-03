@@ -8,7 +8,10 @@ const sharp = require('sharp');
 
 const app = express();
 
-app.use(cors({ exposedHeaders: ['X-Compression-Time'] }));
+app.use(cors({
+    origin: '*', // Разрешает запросы со всех адресов
+    exposedHeaders: ['X-Compression-Time']
+}));
 
 const UPLOADS = path.join(__dirname, 'uploads');
 const OUTPUTS = path.join(__dirname, 'compressed');
