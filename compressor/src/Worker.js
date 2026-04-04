@@ -62,7 +62,7 @@ self.onmessage = async (e) => {
                 error: (err) => { throw err; }
             });
 
-            encoder.configure({ codec: 'av01.0.04M.08', width: width, height: height, bitrate: bitrate, hardwareAcceleration: 'prefer-software' });
+            encoder.configure({ codec: 'av01.0.04M.08', width: width, height: height, bitrate: bitrate, hardwareAcceleration: settings.hardwarePreference });
 
             encoder.encode(new VideoFrame(fixedBitmap, { timestamp: 0 }), { keyFrame: true });
             await encoder.flush();
