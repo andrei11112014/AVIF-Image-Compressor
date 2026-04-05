@@ -4,18 +4,19 @@ import './App.css';
 
 function App() {
   const API_URL = `http://${window.location.hostname}:3001`;
-  const [status, setStatus] = useState('Инициализация кодека...');
+  const [status, setStatus] = useState('Инициализация...');
   const [downloadUrl, setDownloadUrl] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [mode, setMode] = useState('hybrid');
   const [stats, setStats] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [cacheVersion, setCacheVersion] = useState(0);
-  const isWebCodecsMode = mode === 'hybrid' || mode === 'client_fast';
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   const [inputKey, setInputKey] = useState(0);
   const cacheRef = useRef(new Map());
   const CACHE_LIMIT = 10;
+  const CACHE_TTL = 10 * 60 * 1000;
 
   const fileInputRef = useRef(null);
   const fileNameRef = useRef('');
@@ -26,6 +27,14 @@ function App() {
   const [scale, setScale] = useState(100);
   const [fileName, setFileName] = useState('');
 
+  const qualityRef = useRef(quality);
+  const effortRef = useRef(effort);
+  const scaleRef = useRef(scale);
+
+  useEffect(() => { qualityRef.current = quality; }, [quality]);
+  useEffect(() => { effortRef.current = effort; }, [effort]);
+  useEffect(() => { scaleRef.current = scale; }, [scale]);
+
   const [webCodecsAvailable, setWebCodecsAvailable] = useState(null);
   const [hardwarePreference, setHardwarePreference] = useState('prefer-software');
   const [isMobile, setIsMobile] = useState(false);
@@ -33,10 +42,63 @@ function App() {
   const worker = useMemo(() => new Worker(new URL('./Worker.js', import.meta.url)), []);
 
   useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      let changed = false;
+      for (const [key, value] of cacheRef.current.entries()) {
+        if (now - value.timestamp > CACHE_TTL) {
+          URL.revokeObjectURL(value.url);
+          cacheRef.current.delete(key);
+          changed = true;
+          console.log('[Debug] Removed expired cache entry:', key);
+        }
+      }
+      if (changed) setCacheVersion(prev => prev + 1);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getDefaultMode = () => {
+    if (webCodecsAvailable && isOnline) return 'hybrid';       // 1. Полусерверный
+    if (!webCodecsAvailable && isOnline) return 'server';                             // 2. Серверный
+    else return 'client_software';          // 3. Программный автономный (был client_fast)
+  };
+
+  useEffect(() => {
+    if (webCodecsAvailable !== null) {
+      const defaultMode = getDefaultMode();
+      setMode(defaultMode);
+      console.log('[Debug] Default mode set to:', defaultMode);
+    }
+  }, [webCodecsAvailable, isOnline]);
+
+  // Доступные режимы с новыми названиями и иконками
+  const availableModes = [
+    { value: 'hybrid', label: '🔄 Полусерверный режим' },
+    { value: 'server', label: '☁️ Серверный режим' },
+    { value: 'client_software', label: '💻 Автономный режим' },
+    { value: 'client_fast', label: '🧪 Автономный режим (экспериментальный)' }
+  ].filter(m => {
+    if ((m.value === 'hybrid' || m.value === 'client_fast') && !webCodecsAvailable) return false;
+    return true;
+  });
+
+  useEffect(() => {
     currentDownloadUrlRef.current = downloadUrl;
   }, [downloadUrl]);
 
-  const addToCache = (key, blob, statsObj, fileName) => {
+  const addToCache = (key, blob, statsObj, fileName, qualityVal, effortVal, scaleVal) => {
     const url = URL.createObjectURL(blob);
     const cache = cacheRef.current;
 
@@ -54,9 +116,9 @@ function App() {
       stats: statsObj,
       timestamp: Date.now(),
       fileName,
-      quality,
-      effort,
-      scale,
+      quality: qualityVal,
+      effort: effortVal,
+      scale: scaleVal,
     });
 
     if (cache.size > CACHE_LIMIT) {
@@ -73,6 +135,7 @@ function App() {
         const oldest = cache.get(oldestKey);
         URL.revokeObjectURL(oldest.url);
         cache.delete(oldestKey);
+        console.log('[Debug] Removed oldest cache entry:', oldestKey);
       }
     }
 
@@ -122,7 +185,7 @@ function App() {
     if (!('VideoEncoder' in window) || !('AudioEncoder' in window)) {
       console.log('[Debug] WebCodecs API not available');
       setWebCodecsAvailable(false);
-      setStatus('WebCodecs не поддерживаются браузером. Доступны только серверный и программный режимы.');
+      setStatus('Ограниченный режим');
       return false;
     }
 
@@ -162,7 +225,7 @@ function App() {
         console.warn('[Debug] Basic AV1 check failed:', e2);
       }
       setWebCodecsAvailable(false);
-      setStatus('WebCodecs недоступны для кодека AV1. Используйте серверный или программный режим.');
+      setStatus('Ограниченный режим');
       return false;
     }
   };
@@ -170,17 +233,6 @@ function App() {
   useEffect(() => {
     checkWebCodecsSupport();
   }, []);
-
-  useEffect(() => {
-    if (webCodecsAvailable === false) {
-      const unavailableModes = ['hybrid', 'client_fast'];
-      if (unavailableModes.includes(mode)) {
-        setMode('server');
-        console.log('[Debug] Mode switched to "server" because WebCodecs not available');
-        setStatus('Режим изменён на "Сервер", так как WebCodecs не поддерживается');
-      }
-    }
-  }, [webCodecsAvailable, mode]);
 
   useEffect(() => {
     worker.postMessage({ type: 'WARMUP' });
@@ -212,8 +264,8 @@ function App() {
     setStatus(`Готово!`);
 
     if (fileNameRef.current) {
-      const cacheKey = `${fileNameRef.current}_${quality}_${effort}_${scale}_${mode}`;
-      addToCache(cacheKey, blob, statsObj, fileNameRef.current);
+      const cacheKey = `${fileNameRef.current}_${qualityRef.current}_${effortRef.current}_${scaleRef.current}_${mode}`;
+      addToCache(cacheKey, blob, statsObj, fileNameRef.current, qualityRef.current, effortRef.current, scaleRef.current);
     }
 
     if (fileInputRef.current) { fileInputRef.current.value = ''; }
@@ -224,8 +276,8 @@ function App() {
     setStatus('Упаковка на сервере...');
     const formData = new FormData();
     formData.append('raw_av1', new Blob([rawData]));
-    formData.append('quality', quality);
-    formData.append('effort', effort);
+    formData.append('quality', qualityRef.current);
+    formData.append('effort', effortRef.current);
 
     try {
       const res = await fetch(`${API_URL}/wrap-avif`, { method: 'POST', body: formData });
@@ -246,13 +298,13 @@ function App() {
     fileNameRef.current = file.name;
     console.log('[Debug] Selected file:', file.name, file.size, 'bytes');
 
-    const cacheKey = `${file.name}_${quality}_${effort}_${scale}_${mode}`;
+    const cacheKey = `${file.name}_${qualityRef.current}_${effortRef.current}_${scaleRef.current}_${mode}`;
     const cached = cacheRef.current.get(cacheKey);
     if (cached) {
       touchCacheItem(cacheKey);
       setDownloadUrl(cached.url);
       setStats(cached.stats);
-      setStatus(`Готово! (из кэша)`);
+      setStatus(`Готово!`);
       if (fileInputRef.current) { fileInputRef.current.value = ''; }
       setInputKey(prev => prev + 1);
       return;
@@ -267,19 +319,19 @@ function App() {
     setStatus('Обработка...');
 
     const compressionSettings = {
-      quality,
-      effort,
-      scale,
+      quality: qualityRef.current,
+      effort: effortRef.current,
+      scale: scaleRef.current,
       hardwarePreference: webCodecsAvailable ? hardwarePreference : undefined
     };
-    console.log('[Debug] Compression settings:', compressionSettings);
+    console.log('[Debug] Mode:', mode, 'Compression settings:', compressionSettings);
 
     if (mode === 'server') {
       const fd = new FormData();
       fd.append('image', file);
-      fd.append('quality', quality);
-      fd.append('effort', effort);
-      fd.append('scale', scale);
+      fd.append('quality', qualityRef.current);
+      fd.append('effort', effortRef.current);
+      fd.append('scale', scaleRef.current);
       try {
         const res = await fetch(`${API_URL}/compress`, { method: 'POST', body: fd });
         if (!res.ok) throw new Error('Ошибка сервера');
@@ -306,20 +358,14 @@ function App() {
     }
   };
 
-  const availableModes = [
-    { value: 'hybrid', label: '1. Гибрид (WebCodecs API + Упаковка на сервере)' },
-    { value: 'client_fast', label: '2. Автономно (WebCodecs API + Упаковка в браузере (FFmpeg))' },
-    { value: 'client_software', label: '3. Автономно (Jsquash)' },
-    { value: 'server', label: '4. Сервер (GPU/CPU (FFmpeg + Sharp))' }
-  ];
-
-  const filteredModes = webCodecsAvailable === false
-      ? availableModes.filter(m => m.value !== 'hybrid' && m.value !== 'client_fast')
-      : availableModes;
+  const isQualityDisabled = () => {
+    return mode === 'client_fast' || mode === 'hybrid';
+  };
 
   return (
       <div style={{ padding: '40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto'}}>
         <div className="bubbles-wrapper">
+          {/* Пузырьки – без изменений, опущены для краткости, но они есть в полной версии */}
           <div className="bubble bubble--type-3" style={{ width: '95px', height: '95px', left: '1%', animationDelay: '0s, 0s' }}></div>
           <div className="bubble bubble--type-2" style={{ width: '65px', height: '65px', left: '11%', animationDelay: '11s, 1s' }}></div>
           <div className="bubble bubble--type-5" style={{ width: '35px', height: '35px', left: '18%', animationDelay: '7s, 2s' }}></div>
@@ -349,12 +395,26 @@ function App() {
         <h1 className="title" style={{ fontSize: '38px', marginBottom: '30px' }}>AVIF-Image-Compressor</h1>
 
         <div style={{ marginBottom: '25px' }}>
-          <select value={mode} onChange={(e) => setMode(e.target.value)} className="select" disabled={webCodecsAvailable === null}>
-            {filteredModes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              className="select"
+              disabled={webCodecsAvailable === null}
+          >
+            {availableModes.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
           </select>
-          {webCodecsAvailable === false && isMobile && (
-              <div style={{ fontSize: '12px', color: '#e67e22', marginTop: '5px' }}>
-                ⚠️ Ваше мобильное устройство не поддерживает WebCodecs. Доступны только серверный и программный режимы.
+
+          {/* Критические предупреждения */}
+          {!isOnline && mode === 'server' && (
+              <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
+                ⚠️ Нет интернета – серверный режим может не работать
+              </div>
+          )}
+          {(mode === 'hybrid' || mode === 'client_fast') && webCodecsAvailable === false && (
+              <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
+                ⚠️ Ваш браузер не поддерживает ускоренное сжатие, выберите другой режим
               </div>
           )}
         </div>
@@ -362,15 +422,14 @@ function App() {
         <div className="panel" style={{ marginBottom: '25px' }}>
           <h3 style={{ marginTop: 0, color: '#0056b3' }}>Настройки сжатия</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-            {/* Качество */}
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Качество: {quality}%</label>
               <input
                   type="range"
                   min="1" max="100"
                   value={quality}
-                  onChange={(e) => setQuality(parseInt(e.target.value))}
-                  disabled={isWebCodecsMode}
+                  onChange={(e) => { let val = parseInt(e.target.value, 10); if (val >= 99.5) val = 100; setQuality(val); }}
+                  disabled={isQualityDisabled()}
                   style={{
                     width: '100%',
                     appearance: 'none',
@@ -378,24 +437,22 @@ function App() {
                     borderRadius: '5px',
                     outline: 'none',
                     background: `linear-gradient(to right, #3498db 0%, #3498db ${(quality - 1) / 0.99}%, #e0e0e0 ${(quality - 1) / 0.99}%, #e0e0e0 100%)`,
-                    opacity: isWebCodecsMode ? 0.6 : 1,
-                    cursor: isWebCodecsMode ? 'not-allowed' : 'pointer'
+                    opacity: isQualityDisabled() ? 0.6 : 1,
+                    cursor: isQualityDisabled() ? 'not-allowed' : 'pointer'
                   }}
               />
               <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
-                {isWebCodecsMode ? '⛔ Недоступно в этом режиме' : 'Высокое значение - лучшее качество и больший размер файла'}
+                {isQualityDisabled() ? '⛔ Недоступно в этом режиме' : 'Высокое значение - лучшее качество и больший размер файла'}
               </small>
             </div>
-
-            {/* Степень сжатия */}
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Степень сжатия: {effort}</label>
               <input
                   type="range"
                   min="1" max="10"
                   value={effort}
-                  onChange={(e) => setEffort(parseInt(e.target.value))}
-                  disabled={isWebCodecsMode}
+                  onChange={(e) => { let val = parseInt(e.target.value, 10); if (val >= 9.5) val = 10; setEffort(val); }}
+                  disabled={isQualityDisabled()}
                   style={{
                     width: '100%',
                     appearance: 'none',
@@ -403,23 +460,21 @@ function App() {
                     borderRadius: '5px',
                     outline: 'none',
                     background: `linear-gradient(to right, #3498db 0%, #3498db ${(effort - 1) / 9 * 100}%, #e0e0e0 ${(effort - 1) / 9 * 100}%, #e0e0e0 100%)`,
-                    opacity: isWebCodecsMode ? 0.6 : 1,
-                    cursor: isWebCodecsMode ? 'not-allowed' : 'pointer'
+                    opacity: isQualityDisabled() ? 0.6 : 1,
+                    cursor: isQualityDisabled() ? 'not-allowed' : 'pointer'
                   }}
               />
               <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
-                {isWebCodecsMode ? '⛔ Недоступно в этом режиме' : '1 - быстрее, 10 - качественнее (медленнее)'}
+                {isQualityDisabled() ? '⛔ Недоступно в этом режиме' : '1 - быстрее, 10 - качественнее (медленнее)'}
               </small>
             </div>
-
-            {/* Размер изображения */}
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Размер изображения: {scale}%</label>
               <input
                   type="range"
                   min="10" max="100"
                   value={scale}
-                  onChange={(e) => setScale(parseInt(e.target.value))}
+                  onChange={(e) => { let val = parseInt(e.target.value, 10); if (val >= 99.5) val = 100; setScale(val); }}
                   style={{
                     width: '100%',
                     appearance: 'none',
@@ -429,9 +484,7 @@ function App() {
                     background: `linear-gradient(to right, #3498db 0%, #3498db ${(scale - 10) / 90 * 100}%, #e0e0e0 ${(scale - 10) / 90 * 100}%, #e0e0e0 100%)`
                   }}
               />
-              <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
-                Чем меньше масштаб, меньше размер файла
-              </small>
+              <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>Чем меньше масштаб, меньше размер файла</small>
             </div>
           </div>
         </div>
@@ -451,15 +504,7 @@ function App() {
                 <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px', textAlign: 'left', maxHeight: '200px', overflowY: 'auto' }}>
                   {getCacheItems().length === 0 ? <div style={{ color: '#666' }}>Нет сохранённых изображений</div> :
                       getCacheItems().map((item) => (
-                          <div key={item.key} onClick={() => {
-                            touchCacheItem(item.key);
-                            setDownloadUrl(item.url);
-                            setStats(item.stats);
-                            setFileName(item.fileName);
-                            fileNameRef.current = item.fileName;
-                            setStatus(`Готово! (из истории)`);
-                            setShowHistory(false);
-                          }} style={{ padding: '8px', borderBottom: '1px solid #ddd', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div key={item.key} onClick={() => { touchCacheItem(item.key); setDownloadUrl(item.url); setStats(item.stats); setFileName(item.fileName); fileNameRef.current = item.fileName; setStatus(`Готово!`); setShowHistory(false); }} style={{ padding: '8px', borderBottom: '1px solid #ddd', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span>📷 {item.fileName} <span style={{ fontSize: '10px', color: '#555' }}>(кач:{item.quality}%, ст.:{item.effort}, масштаб:{item.scale}%)</span></span>
                             <span style={{ fontSize: '12px', color: '#666' }}>{item.stats.size} MB / {item.stats.time} ms</span>
                           </div>
