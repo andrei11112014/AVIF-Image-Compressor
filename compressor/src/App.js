@@ -41,6 +41,49 @@ function App() {
 
   const worker = useMemo(() => new Worker(new URL('./Worker.js', import.meta.url)), []);
 
+  const openInNewTab = () => {
+    if (!downloadUrl) return;
+
+    const newWindow = window.open();
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Предпросмотр: ${fileName}</title>
+          <style>
+            body { 
+              margin: 0; background: #1a1a1a; color: white; 
+              display: flex; flex-direction: column; align-items: center; 
+              justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif; 
+            }
+            img { 
+              max-width: 90%; max-height: 80%; object-fit: contain;
+              box-shadow: 0 0 40px rgba(0,0,0,0.6); border-radius: 8px; 
+              background-image: linear-gradient(45deg, #2b2b2b 25%, transparent 25%), 
+                                linear-gradient(-45deg, #2b2b2b 25%, transparent 25%), 
+                                linear-gradient(45deg, transparent 75%, #2b2b2b 75%), 
+                                linear-gradient(-45deg, transparent 75%, #2b2b2b 75%);
+              background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            }
+            .info { margin-top: 20px; text-align: center; }
+            .close-btn { 
+              margin-top: 20px; padding: 10px 25px; background: #3498db; 
+              color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+            }
+            .close-btn:hover { background: #2980b9; }
+          </style>
+        </head>
+        <body>
+          <img src="${downloadUrl}" alt="AVIF Result">
+          <div class="info">
+            <h2>${fileName}</h2>
+            <p>Вес: ${stats.size} MB | Время обработки: ${stats.time} ms</p>
+          </div>
+          <button class="close-btn" onclick="window.close()">Закрыть предпросмотр</button>
+        </body>
+      </html>
+    `);
+  };
+
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -521,6 +564,7 @@ function App() {
               <img src={downloadUrl} alt="Result" style={{ maxWidth: '100%', maxHeight: '500px', borderRadius: '12px', border: '4px solid white', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }} />
               <br />
               <a href={downloadUrl} download="compressed.avif" className="button button--green" style={{ textDecoration: 'none', marginTop: '25px' }}>Скачать .avif</a>
+              <button onClick={openInNewTab} className="button" style={{ backgroundColor: '#3498db' }}>Открыть в новой вкладке</button>
             </div>
         )}
       </div>
