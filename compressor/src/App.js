@@ -41,55 +41,102 @@ function App() {
 
   const worker = useMemo(() => new Worker(new URL('./Worker.js', import.meta.url)), []);
 
-  const openInNewTab = () => {
+  // Функция открытия полноэкранного предпросмотра с Fullscreen API
+  const openFullscreenPreview = () => {
     if (!downloadUrl) return;
-    const newWindow = window.open('', '_blank');
-    if (!newWindow) {
-      alert('Пожалуйста, разрешите всплывающие окна для предпросмотра');
-      return;
-    }
-    newWindow.document.title = `Предпросмотр: ${fileName}`;
-    newWindow.document.body.innerHTML = `
-      <html>
-        <head>
-          <style>
-            body { 
-              margin: 0; background: #1a1a1a; color: white; 
-              display: flex; flex-direction: column; align-items: center; 
-              justify-content: center; height: 100vh; font-family: system-ui, -apple-system, sans-serif; 
-            }
-            img { 
-              max-width: 90%; max-height: 80%; object-fit: contain;
-              box-shadow: 0 0 40px rgba(0,0,0,0.6); border-radius: 8px; 
-              background-image: linear-gradient(45deg, #2b2b2b 25%, transparent 25%), 
-                                linear-gradient(-45deg, #2b2b2b 25%, transparent 25%), 
-                                linear-gradient(45deg, transparent 75%, #2b2b2b 75%), 
-                                linear-gradient(-45deg, transparent 75%, #2b2b2b 75%);
-              background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-            }
-            .info { margin-top: 20px; text-align: center; }
-            .close-btn { 
-              margin-top: 20px; padding: 10px 25px; background: #3498db; 
-              color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
-            }
-            .close-btn:hover { background: #2980b9; }
-          </style>
-        </head>
-        <body>
-          <img src="${downloadUrl}" alt="AVIF Result">
-          <div class="info">
-            <h2>${fileName}</h2>
-            <p>Вес: ${stats.size} MB | Время обработки: ${stats.time} ms</p>
-          </div>
-          <button id="close-preview-btn" class="close-btn">Закрыть предпросмотр</button>
-        </body>
-      </html>
+
+    // Создаём контейнер для полноэкранного просмотра
+    const container = document.createElement('div');
+    container.id = 'fullscreen-preview-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
     `;
 
-    const closeBtn = newWindow.document.getElementById('close-preview-btn');
-    if (closeBtn) {
-      closeBtn.onclick = () => newWindow.close();
-    }
+    // Изображение
+    const img = document.createElement('img');
+    img.src = downloadUrl;
+    img.alt = 'AVIF Result';
+    img.style.cssText = `
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    `;
+
+    // Информационная панель
+    const info = document.createElement('div');
+    info.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      color: white;
+      background: rgba(0,0,0,0.6);
+      padding: 12px 20px;
+      border-radius: 40px;
+      backdrop-filter: blur(8px);
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      z-index: 10000;
+      pointer-events: none;
+    `;
+    info.innerHTML = `
+      <strong>${fileName}</strong><br>
+      ${stats ? `Вес: ${stats.size} MB | Время: ${stats.time} ms` : ''}
+    `;
+
+    // Кнопка закрытия
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ Закрыть';
+    closeBtn.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 24px;
+      background: rgba(52, 152, 219, 0.9);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+      backdrop-filter: blur(5px);
+      z-index: 10000;
+      transition: background 0.2s;
+    `;
+    closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(41, 128, 185, 0.9)';
+    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(52, 152, 219, 0.9)';
+    closeBtn.onclick = () => document.exitFullscreen();
+
+    // Собираем элементы
+    container.appendChild(img);
+    container.appendChild(info);
+    container.appendChild(closeBtn);
+    document.body.appendChild(container);
+
+    // Обработчик выхода из полноэкранного режима
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        if (container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+        document.removeEventListener('fullscreenchange', onFullscreenChange);
+      }
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+
+    // Запрашиваем полноэкранный режим
+    container.requestFullscreen().catch(err => {
+      alert('Не удалось открыть полноэкранный режим. Возможно, браузер блокирует эту функцию.');
+      console.error('Fullscreen error:', err);
+      if (container.parentNode) container.parentNode.removeChild(container);
+    });
   };
 
   useEffect(() => {
@@ -121,9 +168,9 @@ function App() {
   }, []);
 
   const getDefaultMode = () => {
-    if (webCodecsAvailable && isOnline) return 'hybrid';       // 1. Полусерверный
-    if (!webCodecsAvailable && isOnline) return 'server';                             // 2. Серверный
-    else return 'client_software';          // 3. Программный автономный (был client_fast)
+    if (webCodecsAvailable && isOnline) return 'hybrid';
+    if (!webCodecsAvailable && isOnline) return 'server';
+    else return 'client_software';
   };
 
   useEffect(() => {
@@ -134,7 +181,6 @@ function App() {
     }
   }, [webCodecsAvailable, isOnline]);
 
-  // Доступные режимы с новыми названиями и иконками
   const availableModes = [
     { value: 'hybrid', label: '🔄 Полусерверный режим' },
     { value: 'server', label: '☁️ Серверный режим' },
@@ -416,7 +462,7 @@ function App() {
   return (
       <div style={{ padding: '40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto'}}>
         <div className="bubbles-wrapper">
-          {/* Пузырьки – без изменений, опущены для краткости, но они есть в полной версии */}
+          {/* Пузырьки – без изменений */}
           <div className="bubble bubble--type-3" style={{ width: '95px', height: '95px', left: '1%', animationDelay: '0s, 0s' }}></div>
           <div className="bubble bubble--type-2" style={{ width: '65px', height: '65px', left: '11%', animationDelay: '11s, 1s' }}></div>
           <div className="bubble bubble--type-5" style={{ width: '35px', height: '35px', left: '18%', animationDelay: '7s, 2s' }}></div>
@@ -457,7 +503,6 @@ function App() {
             ))}
           </select>
 
-          {/* Критические предупреждения */}
           {!isOnline && mode === 'server' && (
               <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
                 Нет интернета – серверный режим может не работать
@@ -572,7 +617,7 @@ function App() {
               <img src={downloadUrl} alt="Result" style={{ maxWidth: '100%', maxHeight: '500px', borderRadius: '12px', border: '4px solid white', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }} />
               <br />
               <a href={downloadUrl} download="compressed.avif" className="button button--green" style={{ textDecoration: 'none', marginTop: '25px' }}>Скачать .avif</a>
-              <button onClick={openInNewTab} className="button" style={{ backgroundColor: '#3498db' }}>Открыть в новой вкладке</button>
+              <button onClick={openFullscreenPreview} className="button" style={{ backgroundColor: '#3498db' }}>Открыть на весь экран</button>
             </div>
         )}
       </div>
