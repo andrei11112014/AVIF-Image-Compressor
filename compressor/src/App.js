@@ -43,12 +43,15 @@ function App() {
 
   const openInNewTab = () => {
     if (!downloadUrl) return;
-
-    const newWindow = window.open();
-    newWindow.document.write(`
+    const newWindow = window.open('', '_blank');
+    if (!newWindow) {
+      alert('Пожалуйста, разрешите всплывающие окна для предпросмотра');
+      return;
+    }
+    newWindow.document.title = `Предпросмотр: ${fileName}`;
+    newWindow.document.body.innerHTML = `
       <html>
         <head>
-          <title>Предпросмотр: ${fileName}</title>
           <style>
             body { 
               margin: 0; background: #1a1a1a; color: white; 
@@ -62,7 +65,7 @@ function App() {
                                 linear-gradient(-45deg, #2b2b2b 25%, transparent 25%), 
                                 linear-gradient(45deg, transparent 75%, #2b2b2b 75%), 
                                 linear-gradient(-45deg, transparent 75%, #2b2b2b 75%);
-              background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+              background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0;
             }
             .info { margin-top: 20px; text-align: center; }
             .close-btn { 
@@ -78,10 +81,15 @@ function App() {
             <h2>${fileName}</h2>
             <p>Вес: ${stats.size} MB | Время обработки: ${stats.time} ms</p>
           </div>
-          <button class="close-btn" onclick="window.close()">Закрыть предпросмотр</button>
+          <button id="close-preview-btn" class="close-btn">Закрыть предпросмотр</button>
         </body>
       </html>
-    `);
+    `;
+
+    const closeBtn = newWindow.document.getElementById('close-preview-btn');
+    if (closeBtn) {
+      closeBtn.onclick = () => newWindow.close();
+    }
   };
 
   useEffect(() => {
@@ -452,12 +460,12 @@ function App() {
           {/* Критические предупреждения */}
           {!isOnline && mode === 'server' && (
               <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
-                ⚠️ Нет интернета – серверный режим может не работать
+                Нет интернета – серверный режим может не работать
               </div>
           )}
           {(mode === 'hybrid' || mode === 'client_fast') && webCodecsAvailable === false && (
               <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
-                ⚠️ Ваш браузер не поддерживает ускоренное сжатие, выберите другой режим
+                Ваш браузер не поддерживает ускоренное сжатие, выберите другой режим
               </div>
           )}
         </div>
@@ -485,7 +493,7 @@ function App() {
                   }}
               />
               <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
-                {isQualityDisabled() ? '⛔ Недоступно в этом режиме' : 'Высокое значение - лучшее качество и больший размер файла'}
+                {isQualityDisabled() ? 'Недоступно в этом режиме' : 'Высокое значение - лучшее качество и больший размер файла'}
               </small>
             </div>
             <div>
@@ -508,7 +516,7 @@ function App() {
                   }}
               />
               <small style={{ display: 'block', marginTop: '8px', color: '#444', fontStyle: 'italic' }}>
-                {isQualityDisabled() ? '⛔ Недоступно в этом режиме' : '1 - быстрее, 10 - качественнее (медленнее)'}
+                {isQualityDisabled() ? 'Недоступно в этом режиме' : '1 - быстрее, 10 - качественнее (медленнее)'}
               </small>
             </div>
             <div>
@@ -542,7 +550,7 @@ function App() {
           {stats && <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '8px', display: 'inline-block' }}><strong>Время:</strong> {stats.time} ms | <strong>Вес:</strong> {stats.size} MB</div>}
 
           <div style={{ marginTop: '15px' }}>
-            <button onClick={() => setShowHistory(!showHistory)} className="button">📋 Ранее сжатые ({getCacheItems().length})</button>
+            <button onClick={() => setShowHistory(!showHistory)} className="button">Ранее сжатые ({getCacheItems().length})</button>
             {showHistory && (
                 <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px', textAlign: 'left', maxHeight: '200px', overflowY: 'auto' }}>
                   {getCacheItems().length === 0 ? <div style={{ color: '#666' }}>Нет сохранённых изображений</div> :
