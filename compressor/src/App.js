@@ -70,54 +70,11 @@ function App() {
       box-shadow: 0 0 30px rgba(0,0,0,0.5);
     `;
 
-    // Информационная панель
-    const info = document.createElement('div');
-    info.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      color: white;
-      background: rgba(0,0,0,0.6);
-      padding: 12px 20px;
-      border-radius: 40px;
-      backdrop-filter: blur(8px);
-      font-family: system-ui, sans-serif;
-      font-size: 14px;
-      z-index: 10000;
-      pointer-events: none;
-    `;
-    info.innerHTML = `
-      <strong>${fileName}</strong><br>
-      ${stats ? `Вес: ${stats.size} MB | Время: ${stats.time} ms` : ''}
-    `;
-
     // Кнопка закрытия
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Закрыть';
-    closeBtn.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 24px;
-      background: rgba(52, 152, 219, 0.9);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 16px;
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      transition: background 0.2s;
-    `;
-    closeBtn.onmouseover = () => closeBtn.style.background = 'rgba(41, 128, 185, 0.9)';
-    closeBtn.onmouseout = () => closeBtn.style.background = 'rgba(52, 152, 219, 0.9)';
-    closeBtn.onclick = () => document.exitFullscreen();
+    const onclick = () => document.exitFullscreen();
 
     // Собираем элементы
     container.appendChild(img);
-    container.appendChild(info);
-    container.appendChild(closeBtn);
     document.body.appendChild(container);
 
     // Обработчик выхода из полноэкранного режима
@@ -462,32 +419,30 @@ function App() {
   return (
       <div style={{ padding: '40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto'}}>
         <div className="bubbles-wrapper">
-          {/* Пузырьки – без изменений */}
-          <div className="bubble bubble--type-3" style={{ width: '95px', height: '95px', left: '1%', animationDelay: '0s, 0s' }}></div>
-          <div className="bubble bubble--type-2" style={{ width: '65px', height: '65px', left: '11%', animationDelay: '11s, 1s' }}></div>
-          <div className="bubble bubble--type-5" style={{ width: '35px', height: '35px', left: '18%', animationDelay: '7s, 2s' }}></div>
-          <div className="bubble bubble--type-1" style={{ width: '30px', height: '30px', left: '23%', animationDelay: '4s, 2s' }}></div>
-          <div className="bubble bubble--type-3" style={{ width: '85px', height: '85px', left: '5%', animationDelay: '16s, 3s' }}></div>
-          <div className="bubble bubble--type-5" style={{ width: '45px', height: '45px', left: '15%', animationDelay: '20s, 1.5s' }}></div>
-          <div className="bubble bubble--type-6" style={{ width: '105px', height: '105px', left: '19%', animationDelay: '9s, 0s' }}></div>
-          <div className="bubble bubble--type-5" style={{ width: '20px', height: '20px', left: '7%', animationDelay: '3s, 1s' }}></div>
-          <div className="bubble bubble--type-4" style={{ width: '70px', height: '70px', left: '27%', animationDelay: '22s, 2s' }}></div>
-          <div className="bubble bubble--type-3" style={{ width: '85px', height: '85px', left: '34%', animationDelay: '5s, 0.5s' }}></div>
-          <div className="bubble bubble--type-2" style={{ width: '75px', height: '75px', left: '42%', animationDelay: '10s, 3s' }}></div>
-          <div className="bubble bubble--type-5" style={{ width: '30px', height: '30px', left: '31%', animationDelay: '18s, 1s' }}></div>
-          <div className="bubble bubble--type-1" style={{ width: '55px', height: '55px', left: '49%', animationDelay: '20s, 1s' }}></div>
-          <div className="bubble bubble--type-6" style={{ width: '105px', height: '105px', left: '55%', animationDelay: '2s, 0s' }}></div>
-          <div className="bubble bubble--type-2" style={{ width: '90px', height: '90px', left: '45%', animationDelay: '14s, 4s' }}></div>
-          <div className="bubble bubble--type-6" style={{ width: '20px', height: '20px', left: '53%', animationDelay: '6s, 2s' }}></div>
-          <div className="bubble bubble--type-2" style={{ width: '80px', height: '80px', left: '61%', animationDelay: '17s, 2s' }}></div>
-          <div className="bubble bubble--type-3" style={{ width: '75px', height: '75px', left: '69%', animationDelay: '8s, 0.5s' }}></div>
-          <div className="bubble bubble--type-5" style={{ width: '60px', height: '60px', left: '76%', animationDelay: '3s, 5s' }}></div>
-          <div className="bubble bubble--type-1" style={{ width: '25px', height: '25px', left: '67%', animationDelay: '24s, 4s' }}></div>
-          <div className="bubble bubble--type-4" style={{ width: '100px', height: '100px', left: '81%', animationDelay: '12s, 1s' }}></div>
-          <div className="bubble bubble--type-3" style={{ width: '60px', height: '60px', left: '89%', animationDelay: '11s, 0.5s' }}></div>
-          <div className="bubble bubble--type-6" style={{ width: '90px', height: '90px', left: '95%', animationDelay: '1s, 0s' }}></div>
-          <div className="bubble bubble--type-1" style={{ width: '45px', height: '45px', left: '86%', animationDelay: '6s, 1s' }}></div>
-          <div className="bubble bubble--type-2" style={{ width: '50px', height: '50px', left: '91%', animationDelay: '15s, 2s' }}></div>
+          {useMemo(() => {
+            const bubbleConfigs = [
+              { w: 95, l: 1, d: '0s, 0s', t: 3 }, { w: 65, l: 11, d: '11s, 1s', t: 2 },
+              { w: 35, l: 18, d: '7s, 2s', t: 5 }, { w: 30, l: 23, d: '4s, 2s', t: 1 },
+              { w: 85, l: 5, d: '16s, 3s', t: 3 }, { w: 45, l: 15, d: '20s, 1.5s', t: 5 },
+              { w: 105, l: 19, d: '9s, 0s', t: 6 }, { w: 20, l: 7, d: '3s, 1s', t: 5 },
+              { w: 70, l: 27, d: '22s, 2s', t: 4 }, { w: 85, l: 34, d: '5s, 0.5s', t: 3 },
+              { w: 75, l: 42, d: '10s, 3s', t: 2 }, { w: 30, l: 31, d: '18s, 1s', t: 5 },
+              { w: 55, l: 49, d: '20s, 1s', t: 1 }, { w: 105, l: 55, d: '2s, 0s', t: 6 },
+              { w: 90, l: 45, d: '14s, 4s', t: 2 }, { w: 20, l: 53, d: '6s, 2s', t: 6 },
+              { w: 80, l: 61, d: '17s, 2s', t: 2 }, { w: 75, l: 69, d: '8s, 0.5s', t: 3 },
+              { w: 60, l: 76, d: '3s, 5s', t: 5 }, { w: 25, l: 67, d: '24s, 4s', t: 1 },
+              { w: 100, l: 81, d: '12s, 1s', t: 4 }, { w: 60, l: 89, d: '11s, 0.5s', t: 3 },
+              { w: 90, l: 95, d: '1s, 0s', t: 6 }, { w: 45, l: 86, d: '6s, 1s', t: 1 },
+              { w: 50, l: 91, d: '15s, 2s', t: 2 }
+            ];
+            return bubbleConfigs.map((b, i) => (
+                <div
+                    key={i}
+                    className={`bubble bubble--type-${b.t}`}
+                    style={{ width: `${b.w}px`, height: `${b.w}px`, left: `${b.l}%`, animationDelay: b.d }}
+                />
+            ));
+          }, [])}
         </div>
         <h1 className="title" style={{ fontSize: '38px', marginBottom: '30px' }}>AVIF-Image-Compressor</h1>
 
@@ -588,14 +543,14 @@ function App() {
         <div className="panel" style={{ borderStyle: 'dashed', borderWidth: '3px', borderColor: 'rgba(52, 152, 219, 0.4)' }}>
           <div className="file-upload">
             <input key={inputKey} id="file" type="file" accept="image/*" onChange={handleFile} disabled={!isReady || webCodecsAvailable === null} style={{ display: 'none' }} />
-            <label htmlFor="file" className="button">Выберите файл</label>
+            <label htmlFor="file" className="button button--blue">Выберите файл</label>
           </div>
           {fileName && <div style={{ marginTop: '12px', color: '#333', fontSize: '15px' }}>Файл: <strong>{fileName}</strong></div>}
           {status && <p style={{ marginTop: '20px', fontSize: '18px' }}><span style={{ color: '#0078d7', fontWeight: 'bold' }}>{status}</span></p>}
           {stats && <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '8px', display: 'inline-block' }}><strong>Время:</strong> {stats.time} ms | <strong>Вес:</strong> {stats.size} MB</div>}
 
           <div style={{ marginTop: '15px' }}>
-            <button onClick={() => setShowHistory(!showHistory)} className="button">Ранее сжатые ({getCacheItems().length})</button>
+            <button onClick={() => setShowHistory(!showHistory)} className="button button--teal">Ранее сжатые ({getCacheItems().length})</button>
             {showHistory && (
                 <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px', textAlign: 'left', maxHeight: '200px', overflowY: 'auto' }}>
                   {getCacheItems().length === 0 ? <div style={{ color: '#666' }}>Нет сохранённых изображений</div> :
@@ -616,8 +571,16 @@ function App() {
               <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#2c3e50' }}>Предпросмотр:</div>
               <img src={downloadUrl} alt="Result" style={{ maxWidth: '100%', maxHeight: '500px', borderRadius: '12px', border: '4px solid white', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }} />
               <br />
-              <a href={downloadUrl} download="compressed.avif" className="button button--green" style={{ textDecoration: 'none', marginTop: '25px' }}>Скачать .avif</a>
-              <button onClick={openFullscreenPreview} className="button" style={{ backgroundColor: '#3498db' }}>Открыть на весь экран</button>
+              <div className="preview-actions">
+              <a href={downloadUrl} download="compressed.avif" className="button button--green" style={{ textDecoration: 'none'}}>Скачать .avif</a>
+              <button onClick={openFullscreenPreview} className="button button--teal button--icon-only" title="Открыть в новой вкладке">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </button>
+            </div>
             </div>
         )}
       </div>
