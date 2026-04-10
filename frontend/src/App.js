@@ -26,7 +26,7 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [inputKey, setInputKey] = useState(0);
 
-  const [quality, setQuality] = useState(35);
+  const [quality, setQuality] = useState(70);
   const [effort, setEffort] = useState(4);
   const [scale, setScale] = useState(100);
   const [fileName, setFileName] = useState('');
