@@ -4,7 +4,7 @@ const ALL_MODES = [
     { value: 'hybrid', label: '🔄 Полусерверный режим' },
     { value: 'server', label: '☁️ Серверный режим' },
     { value: 'client_software', label: '💻 Автономный режим' },
-    { value: 'client_fast', label: '🧪 Автономный режим (экспериментальный)' }
+    { value: 'client_fast', label: '🧪 Автономный режим (бета)' }
 ];
 
 export const ModeSelector = ({ mode, setMode, webCodecsAvailable, isOnline }) => {
@@ -33,13 +33,13 @@ export const ModeSelector = ({ mode, setMode, webCodecsAvailable, isOnline }) =>
             </select>
 
             {!isOnline && mode === 'server' && (
-                <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
+                <div className="mode-warning">
                     Нет интернета – серверный режим может не работать
                 </div>
             )}
             {(mode === 'hybrid' || mode === 'client_fast') &&
                 webCodecsAvailable === false && (
-                    <div style={{ fontSize: '12px', color: 'orange', marginTop: '5px' }}>
+                    <div className="mode-warning">
                         Ваш браузер не поддерживает ускоренное сжатие, выберите другой режим
                     </div>
                 )}
