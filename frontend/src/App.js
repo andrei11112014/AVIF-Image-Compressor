@@ -139,7 +139,16 @@ function App() {
   return (
       <div style={{ padding: '40px', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
         <BackgroundBubbles />
-        <h1 className="title" style={{ fontSize: '38px', marginBottom: '30px' }}>
+        <h1 className="title" style={{ fontSize: '44px',
+          marginBottom: '25px',
+          fontWeight: '850',
+          textAlign: 'center',
+          letterSpacing: '-1px',
+          background: 'linear-gradient(to bottom, #4facfe 0%, #3498db 35%, #0056b3 60%, #4facfe 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          filter: 'drop-shadow(0 3px 2px #fff)',
+          padding: '10px 0'}}>
           AVIF Image Compressor
         </h1>
 

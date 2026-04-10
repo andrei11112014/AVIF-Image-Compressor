@@ -49,8 +49,8 @@ export const Preview = ({ downloadUrl, fileName, stats }) => {
 
     return (
         <div className="panel" style={{ marginTop: '40px' }}>
-            <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#2c3e50' }}>
-                Предпросмотр:
+            <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#0056b3', fontSize: '19px'}}>
+                Предпросмотр
             </div>
             <img
                 src={downloadUrl}

@@ -5,7 +5,7 @@ export const SettingsPanel = ({ quality, setQuality, effort, setEffort, scale, s
 
     return (
         <div className="panel" style={{ marginBottom: '25px' }}>
-            <h3 style={{ marginTop: 0, color: '#0056b3' }}>Настройки сжатия</h3>
+            <h3 style={{ marginTop: 0, color: '#0056b3', fontSize: '19px' }}>Настройки сжатия</h3>
             <div
                 style={{
                     display: 'grid',
