@@ -96,7 +96,7 @@ body::before {
             0 5px 8px rgba(61, 244, 222, 0.6),
             0 9px 13px rgba(175, 255, 255, 0.4);
 }
-.button--icon-only {
+.button--icon {
     width: 60px !important;
     height: 60px !important;
     padding: 0;
@@ -257,7 +257,8 @@ input[type="range"] {
     -webkit-appearance: none;
     width: 100%;
     height: 10px;
-    background: transparent;
+    background: #e0e0e0;
+    border-radius: 5px;
     cursor: pointer;
     outline: none;
     margin: 10px 0;

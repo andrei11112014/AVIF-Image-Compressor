@@ -82,10 +82,10 @@ export const Preview = ({ downloadUrl, fileName, stats }) => {
                 </a>
                 <button
                     onClick={openFullscreenPreview}
-                    className="button button--teal"
+                    className="button button--teal button--icon"
                     title="Открыть на весь экран"
                     style={{
-                        width: '220px',
+                        width: '60px',
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -97,7 +97,6 @@ export const Preview = ({ downloadUrl, fileName, stats }) => {
                         <polyline points="15 3 21 3 21 9"></polyline>
                         <line x1="10" y1="14" x2="21" y2="3"></line>
                     </svg>
-                    <span></span>
                 </button>
             </div>
         </div>

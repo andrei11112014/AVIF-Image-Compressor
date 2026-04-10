@@ -30,10 +30,7 @@ export const SettingsPanel = ({ quality, setQuality, effort, setEffort, scale, s
                         }}
                         disabled={disabled}
                         style={{
-                            width: '100%',
                             appearance: 'none',
-                            height: '10px',
-                            borderRadius: '5px',
                             outline: 'none',
                             background: `linear-gradient(to right, #3498db 0%, #3498db ${
                                 (quality - 1) / 0.99
@@ -66,10 +63,7 @@ export const SettingsPanel = ({ quality, setQuality, effort, setEffort, scale, s
                         }}
                         disabled={disabled}
                         style={{
-                            width: '100%',
                             appearance: 'none',
-                            height: '10px',
-                            borderRadius: '5px',
                             outline: 'none',
                             background: `linear-gradient(to right, #3498db 0%, #3498db ${
                                 ((effort - 1) / 9) * 100
@@ -101,10 +95,7 @@ export const SettingsPanel = ({ quality, setQuality, effort, setEffort, scale, s
                             setScale(val);
                         }}
                         style={{
-                            width: '100%',
                             appearance: 'none',
-                            height: '10px',
-                            borderRadius: '5px',
                             outline: 'none',
                             background: `linear-gradient(to right, #3498db 0%, #3498db ${
                                 ((scale - 10) / 90) * 100

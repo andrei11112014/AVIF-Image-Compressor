@@ -16,8 +16,10 @@ export const HistoryPanel = ({ showHistory, setShowHistory, cacheItems, onSelect
                     style={{
                         marginTop: '10px',
                         padding: '10px',
-                        backgroundColor: '#f8f9fa',
-                        borderRadius: '8px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.4)',
+                        backdropFilter: 'blur(10px)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255, 255, 255, 0.6)',
                         textAlign: 'left',
                         maxHeight: '200px',
                         overflowY: 'auto',
