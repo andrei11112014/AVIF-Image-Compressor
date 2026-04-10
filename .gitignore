@@ -22,7 +22,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 /.idea/
-/compressor/node_modules/
-/server/compressed/
-/server/node_modules/
-/server/uploads/
+/frontend/node_modules/
+/backend/compressed/
+/backend/node_modules/
+/backend/uploads/
